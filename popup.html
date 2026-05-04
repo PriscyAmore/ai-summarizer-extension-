@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Page Summarizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <div id="settings-panel" class="panel hidden" role="dialog" aria-label="Settings">
+    <div class="panel-header">
+      <span class="panel-title">Settings</span>
+      <button id="close-settings-btn" class="icon-btn" aria-label="Close settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="settings-body">
+      <div class="field-group">
+        <label for="api-key-input" class="field-label">
+          Gemini API Key
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" class="get-key-link">Get a free key ↗</a>
+        </label>
+        <div class="key-input-wrap">
+          <input type="password" id="api-key-input" class="text-input" placeholder="AIza..." autocomplete="off" spellcheck="false" aria-label="Gemini API Key" />
+          <button id="toggle-key-btn" class="icon-btn key-eye" aria-label="Toggle API key visibility">
+            <svg id="eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <p class="field-hint">Stored securely in chrome.storage.sync — never exposed to pages.</p>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Default Summary Mode</label>
+        <div class="radio-group" role="radiogroup" aria-label="Summary mode">
+          <label class="radio-option"><input type="radio" name="mode" value="full" id="mode-full" /><span class="radio-label">Full Summary</span></label>
+          <label class="radio-option"><input type="radio" name="mode" value="brief" id="mode-brief" /><span class="radio-label">3 Bullet Points</span></label>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Theme</label>
+        <div class="radio-group" role="radiogroup" aria-label="Theme">
+          <label class="radio-option"><input type="radio" name="theme" value="dark" id="theme-dark" /><span class="radio-label">Dark</span></label>
+          <label class="radio-option"><input type="radio" name="theme" value="light" id="theme-light" /><span class="radio-label">Light</span></label>
+        </div>
+      </div>
+      <div class="settings-actions">
+        <button id="save-settings-btn" class="btn-primary">Save Settings</button>
+        <button id="clear-cache-btn" class="btn-ghost">Clear Cache</button>
+      </div>
+      <p id="settings-status" class="settings-status" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <div id="main-panel" class="panel">
+    <header class="app-header">
+      <div class="logo-wrap">
+        <div class="logo-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span class="app-name">Summarizer</span>
+      </div>
+      <button id="open-settings-btn" class="icon-btn" aria-label="Open settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+      </button>
+    </header>
+
+    <div class="page-info" id="page-info">
+      <span id="page-title" class="page-title" title="">—</span>
+    </div>
+
+    <div class="mode-bar" role="group" aria-label="Summary mode">
+      <button class="mode-btn active" data-mode="full" aria-pressed="true">Full Summary</button>
+      <button class="mode-btn" data-mode="brief" aria-pressed="false">3 Bullets</button>
+    </div>
+
+    <div class="action-bar">
+      <button id="summarize-btn" class="btn-primary full-width" aria-label="Summarize this page">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Summarize Page
+      </button>
+    </div>
+
+    <div id="loading-state" class="state-view hidden" role="status" aria-live="polite">
+      <div class="spinner" aria-hidden="true"><div class="spinner-ring"></div></div>
+      <p class="loading-label">Analyzing page content…</p>
+    </div>
+
+    <div id="error-state" class="state-view hidden" role="alert" aria-live="assertive">
+      <div class="error-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <p id="error-message" class="error-text"></p>
+      <button id="error-action-btn" class="btn-ghost small" style="margin-top:8px;">Open Settings</button>
+    </div>
+
+    <div id="summary-output" class="summary-output hidden" aria-live="polite">
+      <div class="meta-row">
+        <span id="meta-reading-time" class="meta-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>—</span>
+        <span id="meta-word-count" class="meta-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>—</span>
+        <span id="meta-topic" class="meta-chip topic-chip">—</span>
+        <span id="cache-badge" class="meta-chip cache-chip hidden">cached</span>
+      </div>
+      <section aria-label="Summary">
+        <h2 class="section-label">Summary</h2>
+        <ul id="summary-list" class="bullet-list"></ul>
+      </section>
+      <section aria-label="Key insights" id="insights-section">
+        <h2 class="section-label">Key Insights</h2>
+        <ul id="insights-list" class="insight-list"></ul>
+      </section>
+      <div class="output-actions">
+        <button id="copy-btn" class="btn-ghost small"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy</button>
+        <button id="highlight-btn" class="btn-ghost small"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Highlight</button>
+        <button id="clear-btn" class="btn-ghost small"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg> Clear</button>
+      </div>
+    </div>
+
+    <div id="empty-state" class="state-view empty-state">
+      <div class="empty-art" aria-hidden="true">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </div>
+      <p class="empty-text">Click <strong>Summarize Page</strong> to extract and summarize the current webpage.</p>
+    </div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
