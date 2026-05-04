@@ -60,9 +60,8 @@ async function callGeminiAPI(apiKey, content, title, mode) {
   );
   if (!response.ok) {
     const errData = await response.json().catch(() => ({}));
-    if (response.status === 400) throw new Error("INVALID_API_KEY");
-    if (response.status === 429) throw new Error("RATE_LIMITED");
-    throw new Error(errData?.error?.message || `API error ${response.status}`);
+    const realError = errData?.error?.message || `HTTP ${response.status}`;
+    throw new Error(realError);
   }
   const data = await response.json();
   const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
