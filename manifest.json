@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AI Page Summarizer",
   "version": "1.0.0",
-  "description": "Extracts and summarizes webpage content using AI. Get bullet-point summaries, key insights, and estimated reading time instantly.",
+  "description": "Extracts and summarizes webpage content using AI.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -12,12 +12,7 @@
     "https://generativelanguage.googleapis.com/*"
   ],
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
+    "default_popup": "popup.html"
   },
   "background": {
     "service_worker": "background.js"
@@ -28,10 +23,5 @@
       "js": ["content.js"],
       "run_at": "document_idle"
     }
-  ],
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  }
+  ]
 }
