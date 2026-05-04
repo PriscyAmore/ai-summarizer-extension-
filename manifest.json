@@ -2,14 +2,15 @@
   "manifest_version": 3,
   "name": "AI Page Summarizer",
   "version": "1.0.0",
-  "description": "Extracts and summarizes webpage content using AI.",
+  "description": "Extracts and summarizes webpage content using AI. Get bullet-point summaries, key insights, and estimated reading time instantly.",
   "permissions": [
     "activeTab",
     "scripting",
     "storage"
   ],
   "host_permissions": [
-    "https://generativelanguage.googleapis.com/*"
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.groq.com/*"
   ],
   "action": {
     "default_popup": "popup.html"
